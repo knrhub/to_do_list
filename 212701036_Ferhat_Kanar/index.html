@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <title>Yapılacaklar Listesi</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        .btn-dark-blue {
+            background-color: #00008b;
+        }
+        .task-item {
+            color: black;
+            position: relative;
+            border-bottom: 1px solid #ccc; 
+            padding-bottom: 10px; 
+        }
+        .options {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 100px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            padding: 6px 8px;
+            z-index: 1;
+            right: 0;
+            top: 100%;
+            font-size: 0.8em;
+        }
+        .options a {
+            color: black;
+            padding: 6px 8px;
+            text-decoration: none;
+            display: block;
+        }
+        .completed {
+            text-decoration: line-through;
+        }
+    </style>
+</head>
+<body class="bg-dark text-white">
+    <div class="container">
+        <h1 class="my-4">Yapılacak İş Ekle</h1>
+        <input type="text" class="form-control" id="new-task" placeholder="Yapılacak İş Ekle">
+        <div class="btn-group my-4" role="group">
+            <button type="button" class="btn btn-secondary mr-2 active" id="show-all">Hepsi</button>
+            <button type="button" class="btn btn-secondary mr-2" id="show-ongoing">Devam Eden</button>
+            <button type="button" class="btn btn-secondary mr-2" id="show-completed">Biten</button>
+            <button type="button" class="btn btn-dark-blue" id="clear-tasks">Temizle</button>
+        </div>
+        <ul class="list-group" id="task-list">
+        </ul>
+        <p id="empty-message" style="display: none;">-- Yapılacaklar Listesi Boş --</p>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            var tasks = [];
+
+            $('#new-task').keypress(function(e) {
+                if (e.which == 13) {
+                    var task = $('#new-task').val();
+                    if (task.trim() !== '') {
+                        tasks.push({text: task, completed: false});
+                        $('#new-task').val('');
+                        updateList();
+                    }
+                }
+            });
+
+            $('#show-all').click(function() {
+                updateList();
+            });
+
+            $('#show-ongoing').click(function() {
+                updateList(false);
+            });
+
+            $('#show-completed').click(function() {
+                updateList(true);
+            });
+
+            $('#clear-tasks').click(function() {
+                $('#task-list').empty();
+                tasks = [];
+                $('#empty-message').show();  
+            });
+
+            $(document).on('click', '.edit', function() {
+                var taskText = $(this).closest('.task-item').find('div:first-child').text().trim();
+                var taskIndex = tasks.findIndex(function(task) { return task.text === taskText; });
+                tasks.splice(taskIndex, 1);
+                $('#new-task').val(taskText);
+                $(this).parent().hide();
+            });
+
+            $(document).on('click', '.delete', function() {
+                var taskText = $(this).closest('.task-item').find('div:first-child').text().trim();
+                var taskIndex = tasks.findIndex(function(task) { return task.text === taskText; });
+                tasks.splice(taskIndex, 1);
+                $(this).closest('li').remove();
+            });
+
+            $(document).on('change', 'input[type="checkbox"]', function() {
+                var taskText = $(this).next().text().trim();
+                var taskIndex = tasks.findIndex(function(task) { return task.text === taskText; });
+                tasks[taskIndex].completed = $(this).is(':checked');
+                updateList();
+            });
+
+            function updateList(showCompleted) {
+                $('#task-list').empty();
+                for (var i = 0; i < tasks.length; i++) {
+                    if (showCompleted === undefined || tasks[i].completed === showCompleted) {
+                        $('#task-list').append('<li class="list-group-item d-flex justify-content-between align-items-center task-item"><div><input type="checkbox"' + (tasks[i].completed ? ' checked' : '') + '> <span' + (tasks[i].completed ? ' class="completed"' : '') + '>' + tasks[i].text + '</span></div><div class="options"><a href="#" class="edit">Düzenle</a><a href="#" class="delete">Sil</a></div><button type="button" class="btn btn-secondary btn-sm" onclick="$(this).prev().toggle()">...</button></li>');
+                    }
+                }
+                if (tasks.length === 0) {
+                    $('#empty-message').show();
+                } else {
+                    $('#empty-message').hide();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
